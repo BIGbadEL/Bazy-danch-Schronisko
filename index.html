@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body onload="onload()">
+<body>
     <form>
         <div class="form-group">
           <label for="InputEmail1">Adres email</label>
@@ -19,7 +19,7 @@
           <label for="InputPassword1">Hasło</label>
           <input type="password" class="form-control" id="InputPassword1" placeholder="wpisz hasło">
         </div>
-        <button type="submit" class="btn btn-primary">Zaloguj</button>
+        <button type="submit" class="btn btn-primary" onclick="login_handler(event)" >Zaloguj</button>
         <a href="registration.html"><button type="button" class="btn btn-primary">Rejestracja</button></a>
     </form>
 </body>
