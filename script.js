@@ -85,10 +85,10 @@ async function user_info_handler(event) {
         const client = await response.json();
         if(client.length === 1){
             const content = document.querySelector("#content");
-            content.innerHTML =  '<h4>' + client[0].imie + " " + client[0].nazwisko + '</h4>' + "\n" +
+            content.innerHTML =  '<div align="center"> <h4>' + client[0].imie + " " + client[0].nazwisko + '</h4>' + "\n" +
                 "<p>" + "<i class=\"glyphicon glyphicon-envelope\"></i>" + client[0].mail +
                 "<br />" + client[0].telefon +
-                "</p>";
+                "</p></div>";
             console.log(client[0]);
         }
     } catch (error) {
@@ -438,5 +438,166 @@ async function add_breed_handler(event) {
     } catch(error) {
         console.log(error);
     }
+}
 
+async function add_feed_to_database(event) {
+    event.preventDefault();
+    const newFeed = {
+        name: document.querySelector("#InputName1").value,
+        amount: document.querySelector("#InputAmount1").value,
+        g_id: document.querySelector("#InputSpecies").value
+    };
+    console.log(newFeed);
+    try {
+        const response = await fetch(url + '/add_feed',
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                method: 'post',
+                body: JSON.stringify(newFeed)
+            });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function donate_feed_handler(event) {
+    event.preventDefault();
+    const content = document.querySelector("#content");
+    try {
+        const response = await fetch(url + "/get_all_species")
+        const Species = await response.json();
+        let form = '<form onsubmit="add_feed_to_database(event)">';
+        form += `
+            <select class=\"browser-default custom-select\" id="InputSpecies" required="true">
+                    <option selected>Wybierz Gatunek</option>
+            `;
+
+        Species.forEach(spec => {
+            form += "\n";
+            form += `<option value="${spec.G_ID}"> ${spec.nazwa} </option>`;
+        });
+        form += `
+            </select>
+            <div class="form-group">
+                <label for="InputName1">Nazwa:</label>
+                <input class="form-control" id="InputName1" placeholder="wpisz nazwę" required="true">
+            </div>
+            <div class="form-group">
+                <label for="InputAmount1">Ilość:</label>
+                <input type="number" class="form-control" id="InputAmount1" placeholder="wpisz ilość w kg" required="true">
+            </div>
+            <button type="submit" class="btn btn-primary" >Przekarz Karmę</button>
+            </form>
+            `;
+        content.innerHTML = form;
+    } catch(error) {
+        console.log(error);
+    }
+}
+
+async function add_animal_to_database(event) {
+    event.preventDefault();
+    const sex_select = document.querySelector("#InputSex").value;
+    let sex = '';
+    if(sex_select === '1'){
+        sex = 'meski';
+    } else if (sex_select === '2'){
+        sex = 'zenski';
+    } else if (sex_select === '3'){
+        sex = 'sterylizowany';
+    } else {
+        return;
+    }
+    const newAnimal = {
+        name: document.querySelector("#InputName1").value,
+        g_id: document.querySelector("#InputSpecies").value,
+        c_id: document.querySelector("#InputCenter").value,
+        sex: sex,
+        age: document.querySelector("#InputAge1").value,
+        weight: document.querySelector("#InputWeight1").value
+    };
+    console.log(newAnimal);
+    try {
+        const response = await fetch(url + '/add_animal',
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                method: 'post',
+                body: JSON.stringify(newAnimal)
+            });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function give_animal_handler(event) {
+    event.preventDefault();
+    const content = document.querySelector("#content");
+    try {
+        const response = await fetch(url + "/get_all_species");
+        const Species = await response.json();
+        const response_centers = await fetch(url + "/get_all_centers");
+        const Centers = await response_centers.json();
+        let form = '<form onsubmit="add_animal_to_database(event)">';
+
+        console.log(Centers);
+        form += `
+            <select class=\"browser-default custom-select\" id="InputCenter">
+                    <option selected>Wybierz Ośrodek</option>
+            `;
+
+        Centers.forEach(center => {
+            form += "\n";
+            form += `<option value="${center.O_ID}">` + center.miasto + " ul. " + center.adres + `</option>`;
+        });
+
+        form += "</select>";
+        form += `
+            <select class=\"browser-default custom-select\" id="InputSpecies" required="true">
+                    <option selected>Wybierz Rasę</option>
+            `;
+
+        for (const spec of Species) {
+            form += "\n";
+            form += `<optgroup label="${spec.nazwa}">`;
+            const temp_response = await fetch(url + `/get_breed_by_id/${spec.G_ID}`);
+            const breeds = await temp_response.json();
+            breeds.forEach(breed => {
+               form += "\n";
+               form += `<option value="${breed.R_ID}"> ${breed.nazwa} </option>`;
+            });
+            form += `</optgroup>`;
+        }
+        form += `
+            </select>
+            <select class=\"browser-default custom-select\" id="InputSex">
+                    <option selected>Płeć</option>
+                    <option value="1"> męska </option>
+                    <option value="2"> żeńska </option>
+                    <option value="3"> sterylizowana </option>
+            </select>
+            <div class="form-group">
+                <label for="InputName1">Imię:</label>
+                <input class="form-control" id="InputName1" placeholder="wpisz imię" required="true">
+            </div>
+            <div class="form-group">
+                <label for="InputAge1">Wiek:</label>
+                <input type="number" class="form-control" id="InputAge1" placeholder="wpisz wiek" required="true">
+            </div>
+            <div class="form-group">
+                <label for="InputWeight1">Wiek:</label>
+                <input type="number" class="form-control" id="InputWeight1" placeholder="wpisz wagę" required="true">
+            </div>
+            <button type="submit" class="btn btn-primary" >Oddaj zwierzę</button>
+            </form>
+            `;
+        content.innerHTML = form;
+    } catch(error) {
+        console.log(error);
+    }
 }
