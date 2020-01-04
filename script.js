@@ -601,3 +601,64 @@ async function give_animal_handler(event) {
         console.log(error);
     }
 }
+
+async function load_species(event) {
+    const spec = document.querySelector("#InputSpecies").value;
+    const response = await fetch(url + `/get_breed_by_id/${spec}`);
+    const breeds = await response.json();
+    const species = document.querySelector("#species");
+    let select = '';
+    breeds.forEach(breed => {
+        select += `
+            <div class="custom-control custom-checkbox custom-control-inline">
+              <input type="checkbox" class="custom-control-input" id="defaultInline${breed.R_ID}">
+              <label class="custom-control-label" for="defaultInline${breed.R_ID}">${breed.nazwa}</label>
+            </div>
+        `;
+    });
+    species.innerHTML = select;
+}
+
+
+
+async function add_adoption_handler(event) {
+    event.preventDefault();
+    const content = document.querySelector("#content");
+    try {
+        const response = await fetch(url + "/get_all_species");
+        const Species = await response.json();
+        let form = '<form onsubmit="add_adoption_to_database(event)">';
+        form += `
+            <select class=\"browser-default custom-select\" id="InputSpecies" onchange="load_species(event)" required="true">
+                    <option selected>Wybierz Gatunek</option>
+            `;
+
+        Species.forEach(spec => {
+            form += "\n";
+            form += `<option value="${spec.G_ID}"> ${spec.nazwa} </option>`;
+        });
+        form += `
+            </select>
+            <div id="species"></div>
+            <select class=\"browser-default custom-select\" id="InputSex">
+                    <option selected>Płeć</option>
+                    <option value="1"> męska </option>
+                    <option value="2"> żeńska </option>
+                    <option value="3"> sterylizowana </option>
+            </select>
+            <div class="form-group">
+                <label for="InputAge1">minimalny Wiek:</label>
+                <input type="number" class="form-control" id="InputAge1" placeholder="wpisz wiek" required="true">
+            </div>
+            <div class="form-group">
+                <label for="InputAge2">maksymalny Wiek:</label>
+                <input type="number" class="form-control" id="InputWeight1" placeholder="wpisz wagę" required="true">
+            </div>
+            <button type="submit" class="btn btn-primary" >Oddaj zwierzę</button>
+            </form>
+            `;
+        content.innerHTML = form;
+    } catch(error) {
+        console.log(error);
+    }
+}
