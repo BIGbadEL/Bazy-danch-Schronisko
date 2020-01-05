@@ -611,15 +611,55 @@ async function load_species(event) {
     breeds.forEach(breed => {
         select += `
             <div class="custom-control custom-checkbox custom-control-inline">
-              <input type="checkbox" class="custom-control-input" id="defaultInline${breed.R_ID}">
-              <label class="custom-control-label" for="defaultInline${breed.R_ID}">${breed.nazwa}</label>
+              <input type="checkbox" value="${breed.R_ID}" class="custom-control-input" id="defaultInline${breed.R_ID}">
+              <label class="custom-control-label" for="defaultInline${breed.R_ID}" >${breed.nazwa}</label>
             </div>
         `;
     });
     species.innerHTML = select;
 }
 
-
+async function add_adoption_to_database(event) {
+    event.preventDefault();
+    const breeds = [];
+    const elements = document.querySelectorAll(".custom-control-input");
+    elements.forEach(el => {
+        if(el.checked)
+            breeds.push(parseInt(el.value));
+    });
+    const sex_select = document.querySelector("#InputSex").value;
+    let sex = '';
+    if(sex_select === '1'){
+        sex = 'meski';
+    } else if (sex_select === '2'){
+        sex = 'zenski';
+    } else if (sex_select === '3'){
+        sex = 'sterylizowany';
+    } else {
+        return;
+    }
+    const newAdoption = {
+        c_id: parseInt(sessionStorage.getItem("userID")),
+        g_id: parseInt(document.querySelector("#InputSpecies").value),
+        breeds: breeds,
+        sex: sex,
+        min_age: parseInt(document.querySelector("#InputAge1").value),
+        max_age: parseInt(document.querySelector("#InputAge2").value)
+    };
+    try {
+        const response = await fetch(url + '/add_adoption',
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                method: 'post',
+                body: JSON.stringify(newAdoption)
+            });
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 async function add_adoption_handler(event) {
     event.preventDefault();
@@ -648,17 +688,81 @@ async function add_adoption_handler(event) {
             </select>
             <div class="form-group">
                 <label for="InputAge1">minimalny Wiek:</label>
-                <input type="number" class="form-control" id="InputAge1" placeholder="wpisz wiek" required="true">
+                <input type="number" class="form-control" id="InputAge1" placeholder="wpisz min. wiek" required="true">
             </div>
             <div class="form-group">
                 <label for="InputAge2">maksymalny Wiek:</label>
-                <input type="number" class="form-control" id="InputWeight1" placeholder="wpisz wagę" required="true">
+                <input type="number" class="form-control" id="InputAge2" placeholder="wpisz max. wiek" required="true">
             </div>
             <button type="submit" class="btn btn-primary" >Oddaj zwierzę</button>
             </form>
             `;
         content.innerHTML = form;
     } catch(error) {
+        console.log(error);
+    }
+}
+
+async function Adopt(event, id) {
+    event.preventDefault();
+    const data = {
+        c_id: sessionStorage.getItem("userID"),
+        a_id: id
+    };
+    try {
+        const response = await fetch(url + '/add_redy_adoption',
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                method: 'post',
+                body: JSON.stringify(data)
+            });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function show_animals_handler(event) {
+    event.preventDefault();
+    const content = document.querySelector("#content");
+    try {
+        const response = await fetch(url + "/get_all_animals");
+        const Animals = await response.json();
+        console.log(Animals);
+
+        let table = '<table class="table">'
+        table += `
+            <thead>
+                <tr>
+                  <th scope="col">Imię</th>
+                  <th scope="col">Rasa</th>
+                  <th scope="col">Płeć</th>
+                  <th scope="col">Waga [kg]</th>
+                  <th scope="col">Wiek</th>
+                  <th scope="col">Adopcja</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        Animals.forEach(animal => {
+            table += `
+                <tr>
+                <th scope="row">${animal.imie}</th>
+                <th>${animal.nazwa}</th>
+                <th>${animal.Z_plec}</th>
+                <th>${animal.waga}</th>
+                <th>${animal.wiek}</th>
+                <th><button type="submit" class="btn btn-primary" onclick="Adopt(event, ${animal.Z_ID})">Adoptuj</button></th>
+                </tr>
+            `;
+        });
+
+        table += '</tbody></table>';
+        content.innerHTML = table;
+    } catch (error) {
         console.log(error);
     }
 }
