@@ -1,4 +1,6 @@
 const url = `http://localhost:3002`;
+// const url = `https://shelter-api-bd-2020.herokuapp.com`;
+
 function onload() {
 
 }
@@ -489,7 +491,7 @@ async function donate_feed_handler(event) {
                 <label for="InputAmount1">Ilość:</label>
                 <input type="number" class="form-control" id="InputAmount1" placeholder="wpisz ilość w kg" required="true">
             </div>
-            <button type="submit" class="btn btn-primary" >Przekarz Karmę</button>
+            <button type="submit" class="btn btn-primary" >Przekaż Karmę</button>
             </form>
             `;
         content.innerHTML = form;
@@ -709,14 +711,16 @@ async function Adopt(event, id) {
         c_id: sessionStorage.getItem("userID"),
         a_id: id
     };
+    console.log(data);
     try {
-        const response = await fetch(url + '/add_redy_adoption',
+        const response = await fetch(url + '/add_ready_adoption',
             {
                 headers: {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
                 },
                 method: 'post',
+
                 body: JSON.stringify(data)
             });
     } catch (error) {
@@ -732,7 +736,7 @@ async function show_animals_handler(event) {
         const Animals = await response.json();
         console.log(Animals);
 
-        let table = '<table class="table">'
+        let table = '<table class="table">';
         table += `
             <thead>
                 <tr>
@@ -760,6 +764,85 @@ async function show_animals_handler(event) {
             `;
         });
 
+        table += '</tbody></table>';
+        content.innerHTML = table;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function finalize_adoption(event, ad_id) {
+    event.preventDefault();
+
+}
+
+async function show_adoptions_handler(event) {
+    event.preventDefault();
+    const content = document.querySelector("#content");
+    try {
+        const response = await fetch(url + `/get_adoptions/${sessionStorage.getItem("userID")}`);
+        const Adoptions = await response.json();
+        console.log(Adoptions);
+
+        let table = '<table class="table">';
+        table += `
+            <thead>
+                <tr>
+                  <th scope="col" colspan="3">Poszukiwane Zwierzęta</th>
+                </tr>   
+                <tr>
+                  <th scope="col">Rasa</th>
+                  <th scope="col">Przedział wiekowy</th>
+                  <th scope="col">Płeć</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        Adoptions.forEach(ad => {
+            table += `
+                <tr>
+                <th scope="row">${ad.nazwa}</th>
+                <th>${ad.min_wiek} - ${ad.max_wiek}</th>
+                <th>${ad.A_plec}</th>
+                </tr>
+            `;
+        });
+    // <th><button type="submit" class="btn btn-primary" onclick="Adopt(event, ${animal.Z_ID})">Adoptuj</button></th>
+
+        const response1 = await fetch(url + `/get_ready_adoption/${sessionStorage.getItem("userID")}`);
+        const readyAdoptions = await response1.json();
+        console.log(readyAdoptions);
+        table += '</tbody></table>';
+        table += '<table class="table">';
+        table += `
+            <thead>
+                <tr>
+                  <th scope="col" colspan="6">Dopasowane Zwierzęta</th>
+                </tr>
+                <tr>
+                  <th scope="col">Imię</th>
+                  <th scope="col">Rasa</th>
+                  <th scope="col">Płeć</th>
+                  <th scope="col">Waga [kg]</th>
+                  <th scope="col">Wiek</th>
+                  <th scope="col">Finalizuj</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+        readyAdoptions.forEach(ad => {
+            table += `
+                <tr>
+                <th scope="row">${ad.imie}</th>
+                <th>${ad.nazwa}</th>
+                <th>${ad.Z_plec}</th>
+                <th>${ad.waga}</th>
+                <th>${ad.wiek}</th>
+                <th><button type="submit" class="btn btn-primary" onclick="finalize_adoption(event, ${ad.AD_ID})">Finalizuj Adopcję</button></th>
+                </tr>
+            `;
+        });
         table += '</tbody></table>';
         content.innerHTML = table;
     } catch (error) {
