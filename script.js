@@ -185,7 +185,7 @@ async function add_room_handler(event) {
         const Centers = await response.json();
 
         console.log(Centers);
-        let form = '<form>';
+        let form = '<form onsubmit="add_room_to_database(event)">';
         form += `
             <select class=\"browser-default custom-select\" id="InputCenter">
                     <option selected>Wybierz Ośrodek</option>
@@ -200,13 +200,13 @@ async function add_room_handler(event) {
         form += `
             <div class="form-group">
                 <label for="InputCapacity1">Pojemność:</label>
-                <input class="form-control" id="InputCapacity1" placeholder="wpisz pojemność pomieszczenia">
+                <input class="form-control" id="InputCapacity1" placeholder="wpisz pojemność pomieszczenia" required="true">
             </div>
             <div class="form-group">
                 <label for="InputNumber1">Numer pomieszczenia:</label>
-                <input class="form-control" id="InputNumber1" placeholder="wpisz numer pomieszczenia">
+                <input class="form-control" id="InputNumber1" placeholder="wpisz numer pomieszczenia" required="true">
             </div>
-            <button type="submit" class="btn btn-primary" onclick="add_room_to_database(event)" >Dodaj Pomieszczenie</button>
+            <button type="submit" class="btn btn-primary"  >Dodaj Pomieszczenie</button>
             </form>
             `;
         content.innerHTML = form;
@@ -773,7 +773,23 @@ async function show_animals_handler(event) {
 
 async function finalize_adoption(event, ad_id) {
     event.preventDefault();
+    const data = {
+        ad_id: ad_id
+    };
+    try {
+        const response = await fetch(url + '/finalize_adoption',
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                method: 'post',
 
+                body: JSON.stringify(data)
+            });
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 async function show_adoptions_handler(event) {
@@ -808,7 +824,6 @@ async function show_adoptions_handler(event) {
                 </tr>
             `;
         });
-    // <th><button type="submit" class="btn btn-primary" onclick="Adopt(event, ${animal.Z_ID})">Adoptuj</button></th>
 
         const response1 = await fetch(url + `/get_ready_adoption/${sessionStorage.getItem("userID")}`);
         const readyAdoptions = await response1.json();
@@ -839,11 +854,116 @@ async function show_adoptions_handler(event) {
                 <th>${ad.Z_plec}</th>
                 <th>${ad.waga}</th>
                 <th>${ad.wiek}</th>
-                <th><button type="submit" class="btn btn-primary" onclick="finalize_adoption(event, ${ad.AD_ID})">Finalizuj Adopcję</button></th>
+                <th><button type="submit" class="btn btn-primary" onclick="finalize_adoption(event, ${ad.AU_ID})">Finalizuj Adopcję</button></th>
                 </tr>
             `;
         });
         table += '</tbody></table>';
+        content.innerHTML = table;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function log_out_handler(event) {
+    event.preventDefault();
+    sessionStorage.clear();
+    window.location.href = "index.html";
+}
+
+async function show_s_and_b_handler(event) {
+    event.preventDefault();
+    const content = document.querySelector("#content");
+    try {
+        const response = await fetch(url + "/get_all_species");
+        const Species = await response.json();
+        let table = '<table class="table">';
+
+        table += `
+            <thead> 
+                <tr>
+                  <th scope="col">Gatunek</th>
+                  <th scope="col">Rasa</th>
+                  <th scope="col">Opis</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        for (const spec of Species) {
+            let flag = false;
+            table += "\n <tr>";
+            const temp_response = await fetch(url + `/get_breed_by_id/${spec.G_ID}`);
+            const breeds = await temp_response.json();
+            table += `<td rowspan="${breeds.length}">${spec.nazwa}</td>`;
+            console.log(breeds);
+            breeds.forEach(breed => {
+                if(flag) {
+                    table += "\n <tr>";
+                }
+                flag = true;
+                table += "\n";
+                table +=  `<td>${breed.nazwa}</td>`;
+                table +=  `<td>${breed.opis}</td>`;
+                table += `</tr>`;
+            });
+        }
+        table += `</tbody></table>`;
+        content.innerHTML = table;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function show_workers_handler(event) {
+    event.preventDefault();
+    const content = document.querySelector("#content");
+    try {
+        const response = await fetch(url + "/get_all_centers");
+        const Centers = await response.json();
+        let table = '<table class="table">';
+
+        table += `
+            <thead> 
+                <tr>
+                  <th scope="col">Ośrodek</th>
+                  <th scope="col">Imię</th>
+                  <th scope="col">Nazwisko</th>
+                  <th scope="col">e-mail</th>
+                  <th scope="col">numer telefonu</th>
+                  <th scope="col">stanowisko</th>
+                  <th scope="col">pensja</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        for (const center of Centers) {
+            let flag = false;
+            table += "\n <tr>";
+            const temp_response = await fetch(url + `/get_workers/${center.O_ID}`);
+            const workers = await temp_response.json();
+            if(!workers.length) {
+                continue;
+            }
+            table += `<td rowspan="${workers.length}">${center.miasto} ${center.adres}</td>`;
+            console.log(workers);
+            workers.forEach(worker => {
+                if(flag) {
+                    table += "\n <tr>";
+                }
+                flag = true;
+                table += "\n";
+                table +=  `<td>${worker.imie}</td>`;
+                table +=  `<td>${worker.nazwisko}</td>`;
+                table +=  `<td>${worker.mail}</td>`;
+                table +=  `<td>${worker.telefon}</td>`;
+                table +=  `<td>${worker.stanowisko}</td>`;
+                table +=  `<td>${worker.pensja}</td>`;
+                table += `</tr>`;
+            });
+        }
+        table += `</tbody></table>`;
         content.innerHTML = table;
     } catch (error) {
         console.log(error);
