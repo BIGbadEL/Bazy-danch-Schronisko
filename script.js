@@ -27,6 +27,13 @@ async function login_handler(event) {
             sessionStorage.setItem('isCustomer', true);
             sessionStorage.setItem('isWorker', false);
             window.location.href = "user.html";
+        } else {
+            const email = document.querySelector("#InputPassword");
+            const html = email.innerHTML.toString();
+            if(!html.includes("<small>")) {
+                email.innerHTML = email.innerHTML + "\n" +
+                    "<small>Błędne dane</small>";
+            }
         }
     } catch (error) {
         console.log(error)
@@ -122,6 +129,13 @@ async function login_worker_handler(event) {
             sessionStorage.setItem('isCustomer', false);
             sessionStorage.setItem('isWorker', true);
             window.location.href = "worker.html";
+        }  else {
+            const email = document.querySelector("#InputPassword");
+            const html = email.innerHTML.toString();
+            if(!html.includes("<small>")) {
+                email.innerHTML = email.innerHTML + "\n" +
+                    "<small>Błędne dane</small>";
+            }
         }
     } catch (error) {
         console.log(error)
@@ -165,6 +179,15 @@ async function add_room_to_database(event){
         capacity: document.querySelector("#InputCapacity1").value,
         number: document.querySelector("#InputNumber1").value
     };
+    if(isNaN(Room.o_id)){
+        const selector = document.querySelector("#selector");
+        const html = selector.innerHTML.toString();
+        if(!html.includes("<small>")) {
+            selector.innerHTML = selector.innerHTML + "\n" +
+                "<small>Wybierz Ośrodek</small>";
+        }
+        return;
+    }
     console.log(Room);
     const response = await fetch(url + '/add_room',
         {
@@ -175,6 +198,8 @@ async function add_room_to_database(event){
             method: 'post',
             body: JSON.stringify(Room)
         });
+
+    await room_to_worker_handler(event)
 }
 
 async function add_room_handler(event) {
@@ -187,6 +212,7 @@ async function add_room_handler(event) {
         console.log(Centers);
         let form = '<form onsubmit="add_room_to_database(event)">';
         form += `
+            <div id="selector">
             <select class=\"browser-default custom-select\" id="InputCenter">
                     <option selected>Wybierz Ośrodek</option>
             `;
@@ -198,6 +224,7 @@ async function add_room_handler(event) {
 
         form += "</select>";
         form += `
+            </div>
             <div class="form-group">
                 <label for="InputCapacity1">Pojemność:</label>
                 <input class="form-control" id="InputCapacity1" placeholder="wpisz pojemność pomieszczenia" required="true">
@@ -233,6 +260,16 @@ async function add_center_to_database(event) {
                 method: 'post',
                 body: JSON.stringify(newCenter)
             });
+        if(response.status === 409) {
+            const element = document.querySelector("#content");
+            const html = element.innerHTML.toString();
+            if(!html.includes("</small>")) {
+                element.innerHTML = element.innerHTML + "\n" +
+                    `<small style="margin-left: 40%;">Taki ośrodek już istnieje</small>`;
+            }
+        } else {
+            window.location.href = "worker.html";
+        }
     } catch (error) {
         console.log(error)
     }
@@ -268,6 +305,15 @@ async function add_worker_to_database(event) {
         position: document.querySelector("#InputPosition1").value,
         salary: document.querySelector("#InputSalary1").value
     };
+    if(isNaN(newWorker.o_id)){
+        const selector = document.querySelector("#selector");
+        const html = selector.innerHTML.toString();
+        if(!html.includes("<small>")) {
+            selector.innerHTML = selector.innerHTML + "\n" +
+                "<small>Wybierz Ośrodek</small>";
+        }
+        return;
+    }
     console.log(newWorker);
     try {
         const response = await fetch(url + '/add_worker',
@@ -279,6 +325,16 @@ async function add_worker_to_database(event) {
                 method: 'post',
                 body: JSON.stringify(newWorker)
             });
+        if(response.status === 409) {
+            const email = document.querySelector("#InputEmail");
+            const html = email.innerHTML.toString();
+            if(!html.includes("<small>")) {
+                email.innerHTML = email.innerHTML + "\n" +
+                    "<small>Konto z podanym adresem email już istnieje</small>";
+            }
+        } else {
+            await show_workers_handler(event);
+        }
     } catch (error) {
         console.log(error);
     }
@@ -291,7 +347,7 @@ async function add_worker_handler(event) {
         const response = await fetch(url + "/get_all_centers")
         const Centers = await response.json();
         let form = '<form onsubmit="add_worker_to_database(event)">';
-        form += `
+        form += `<div id="selector">
             <select class=\"browser-default custom-select\" id="InputCenter" required="true">
                     <option selected>Wybierz Ośrodek</option>
             `;
@@ -302,7 +358,7 @@ async function add_worker_handler(event) {
         });
 
         form += "</select>";
-        form += `
+        form += `</div>
             <div class="form-group">
                 <label for="InputName1">Imię:</label>
                 <input class="form-control" id="InputName1" placeholder="wpisz imię" required="true">
@@ -311,7 +367,7 @@ async function add_worker_handler(event) {
                 <label for="InputSurname1">Imię:</label>
                 <input class="form-control" id="InputSurname1" placeholder="wpisz nazwisko" required="true">
             </div>
-            <div class="form-group">
+            <div class="form-group" id="InputEmail">
                 <label for="InputEmail1">Adres email</label>
                 <input type="email" class="form-control" id="InputEmail1" aria-describedby="emailHelp" placeholder="wpisz adres email" required="true">
             </div>
@@ -391,6 +447,15 @@ async function add_breed_to_database(event) {
         description: document.querySelector("#InputDesc1").value,
         g_id: document.querySelector("#InputSpecies").value
     };
+    if(isNaN(newBreed.g_id)){
+        const selector = document.querySelector("#selector");
+        const html = selector.innerHTML.toString();
+        if(!html.includes("<small>")) {
+            selector.innerHTML = selector.innerHTML + "\n" +
+                "<small>Wybierz Gatunek</small>";
+        }
+        return;
+    }
     console.log(newBreed);
     try {
         const response = await fetch(url + '/add_breed',
@@ -405,6 +470,7 @@ async function add_breed_to_database(event) {
     } catch (error) {
         console.log(error);
     }
+    await show_s_and_b_handler(event);
 }
 
 async function add_breed_handler(event) {
@@ -415,6 +481,7 @@ async function add_breed_handler(event) {
         const Species = await response.json();
         let form = '<form onsubmit="add_breed_to_database(event)">';
         form += `
+            <div id="selector">
             <select class=\"browser-default custom-select\" id="InputSpecies" required="true">
                     <option selected>Wybierz Gatunek</option>
             `;
@@ -425,6 +492,7 @@ async function add_breed_handler(event) {
         });
         form += `
             </select>
+            </div>
             <div class="form-group">
                 <label for="InputName1">Nazwa:</label>
                 <input class="form-control" id="InputName1" placeholder="wpisz nazwę" required="true">
@@ -447,8 +515,17 @@ async function add_feed_to_database(event) {
     const newFeed = {
         name: document.querySelector("#InputName1").value,
         amount: document.querySelector("#InputAmount1").value,
-        g_id: document.querySelector("#InputSpecies").value
+        g_id: parseInt(document.querySelector("#InputSpecies").value)
     };
+    if(isNaN(newFeed.g_id)){
+        const email = document.querySelector("#selector");
+        const html = email.innerHTML.toString();
+        if(!html.includes("<small>")) {
+            email.innerHTML = email.innerHTML + "\n" +
+                "<small>Pole musi mieć wartość inną niż domyślna</small>";
+        }
+        return;
+    }
     console.log(newFeed);
     try {
         const response = await fetch(url + '/add_feed',
@@ -463,6 +540,7 @@ async function add_feed_to_database(event) {
     } catch (error) {
         console.log(error);
     }
+    window.location.href = "user.html";
 }
 
 async function donate_feed_handler(event) {
@@ -472,7 +550,7 @@ async function donate_feed_handler(event) {
         const response = await fetch(url + "/get_all_species")
         const Species = await response.json();
         let form = '<form onsubmit="add_feed_to_database(event)">';
-        form += `
+        form += `<div id="selector">
             <select class=\"browser-default custom-select\" id="InputSpecies" required="true">
                     <option selected>Wybierz Gatunek</option>
             `;
@@ -483,6 +561,7 @@ async function donate_feed_handler(event) {
         });
         form += `
             </select>
+            </div>
             <div class="form-group">
                 <label for="InputName1">Nazwa:</label>
                 <input class="form-control" id="InputName1" placeholder="wpisz nazwę" required="true">
@@ -511,6 +590,12 @@ async function add_animal_to_database(event) {
     } else if (sex_select === '3'){
         sex = 'sterylizowany';
     } else {
+        const email = document.querySelector("#selectors");
+        const html = email.innerHTML.toString();
+        if(!html.includes("<small>")) {
+            email.innerHTML = email.innerHTML + "\n" +
+                "<small>Wszystkie pola wyboru muszą mieć warotści inne inż domyślne</small>";
+        }
         return;
     }
     const newAnimal = {
@@ -521,6 +606,25 @@ async function add_animal_to_database(event) {
         age: document.querySelector("#InputAge1").value,
         weight: document.querySelector("#InputWeight1").value
     };
+
+    if(isNaN(newAnimal.g_id)){
+        const email = document.querySelector("#selectors");
+        const html = email.innerHTML.toString();
+        if(!html.includes("<small>")) {
+            email.innerHTML = email.innerHTML + "\n" +
+                "<small>Wszystkie pola wyboru muszą mieć warotści inne inż domyślne</small>";
+        }
+        return;
+    }
+    if(isNaN(newAnimal.c_id)){
+        const email = document.querySelector("#selectors");
+        const html = email.innerHTML.toString();
+        if(!html.includes("<small>")) {
+            email.innerHTML = email.innerHTML + "\n" +
+                "<small>Wszystkie pola wyboru muszą mieć warotści inne inż domyślne</small>";
+        }
+        return;
+    }
     console.log(newAnimal);
     try {
         const response = await fetch(url + '/add_animal',
@@ -535,6 +639,7 @@ async function add_animal_to_database(event) {
     } catch (error) {
         console.log(error);
     }
+    window.location.href = "user.html";
 }
 
 async function give_animal_handler(event) {
@@ -548,7 +653,7 @@ async function give_animal_handler(event) {
         let form = '<form onsubmit="add_animal_to_database(event)">';
 
         console.log(Centers);
-        form += `
+        form += `<div id="selectors">
             <select class=\"browser-default custom-select\" id="InputCenter">
                     <option selected>Wybierz Ośrodek</option>
             `;
@@ -583,6 +688,7 @@ async function give_animal_handler(event) {
                     <option value="2"> żeńska </option>
                     <option value="3"> sterylizowana </option>
             </select>
+            </div>
             <div class="form-group">
                 <label for="InputName1">Imię:</label>
                 <input class="form-control" id="InputName1" placeholder="wpisz imię" required="true">
@@ -638,6 +744,12 @@ async function add_adoption_to_database(event) {
     } else if (sex_select === '3'){
         sex = 'sterylizowany';
     } else {
+        const email = document.querySelector("#species");
+        const html = email.innerHTML.toString();
+        if(!html.includes("<small>")) {
+            email.innerHTML = email.innerHTML + "\n" +
+                "<small>Odydwa pola wyboru muszą mieć warotści inne inż domyślne</small>";
+        }
         return;
     }
     const newAdoption = {
@@ -648,6 +760,24 @@ async function add_adoption_to_database(event) {
         min_age: parseInt(document.querySelector("#InputAge1").value),
         max_age: parseInt(document.querySelector("#InputAge2").value)
     };
+    if(isNaN(newAdoption.g_id)) {
+        const email = document.querySelector("#species");
+        const html = email.innerHTML.toString();
+        if(!html.includes("<small>")) {
+            email.innerHTML = email.innerHTML + "\n" +
+                "<small></br>Odydwa pola wyboru muszą mieć warotści inne inż domyślne</small>";
+        }
+        return;
+    }
+    if(breeds.length === 0) {
+        const email = document.querySelector("#species");
+        const html = email.innerHTML.toString();
+        if(!html.includes("Zaznacz")) {
+            email.innerHTML = email.innerHTML + "\n" +
+                "<small></br>Zaznacz przynajmniej jeden</small>";
+        }
+        return;
+    }
     try {
         const response = await fetch(url + '/add_adoption',
             {
@@ -696,7 +826,7 @@ async function add_adoption_handler(event) {
                 <label for="InputAge2">maksymalny Wiek:</label>
                 <input type="number" class="form-control" id="InputAge2" placeholder="wpisz max. wiek" required="true">
             </div>
-            <button type="submit" class="btn btn-primary" >Oddaj zwierzę</button>
+            <button type="submit" class="btn btn-primary" >Dodaj Adopcję</button>
             </form>
             `;
         content.innerHTML = form;
@@ -726,6 +856,7 @@ async function Adopt(event, id) {
     } catch (error) {
         console.log(error);
     }
+    await show_adoptions_handler(event);
 }
 
 async function show_animals_handler(event) {
@@ -758,10 +889,14 @@ async function show_animals_handler(event) {
                 <th>${animal.nazwa}</th>
                 <th>${animal.Z_plec}</th>
                 <th>${animal.waga}</th>
-                <th>${animal.wiek}</th>
-                <th><button type="submit" class="btn btn-primary" onclick="Adopt(event, ${animal.Z_ID})">Adoptuj</button></th>
-                </tr>
-            `;
+                <th>${animal.wiek}</th>`;
+                if(isNaN(parseInt(animal.AU_ID))) {
+                    table += `<th><button type="submit" class="btn btn-primary" onclick="Adopt(event, ${animal.Z_ID})">Adoptuj</button></th>`;
+                } else {
+                    table += `<th><button type="submit" class="btn btn-primary" onclick="Adopt(event, ${animal.Z_ID})" disabled>Adoptuj</button></th>`;
+                }
+
+                table += `</tr>`;
         });
 
         table += '</tbody></table>';
@@ -790,6 +925,7 @@ async function finalize_adoption(event, ad_id) {
     } catch (error) {
         console.log(error);
     }
+    window.location.href = "user.html";
 }
 
 async function show_adoptions_handler(event) {
@@ -1118,6 +1254,7 @@ async function room_to_worker_handler(event) {
                 <tr>
                   <th scope="col">Numer</th>
                   <th scope="col">Pojemność</th>
+                  <th scope="col">Ilość Zwierząt</th>
                   <th scope="col">Dostępni Pracownicy</th>
                   <th scope="col">Dodaj wybranego Pracownika</th>
                 </tr>
@@ -1128,12 +1265,16 @@ async function room_to_worker_handler(event) {
         for (const room of Rooms) {
             const temp_response = await fetch(url + `/get_workers_for_room/${room.osrodek}/${room.P_ID}`);
             const Workers = await temp_response.json();
+            const response1 = await fetch(url + `/get_number_of_animals/${room.P_ID}`);
+            const numOfAnimals = (await response1.json());
+            console.log(numOfAnimals);
             console.log(Workers);
             table += `
                 <tr>
                 <th scope="row">${room.numer}</th>
                 <th>${room.pojemnosc}</th>
             `;
+            table += `<th>${numOfAnimals[0].count}</th>`;
             table += `<th>`;
             table += `
                         <select class=\"browser-default custom-select\" id="InputCenter${room.P_ID}">
