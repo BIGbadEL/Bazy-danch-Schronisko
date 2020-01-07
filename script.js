@@ -1080,3 +1080,80 @@ async function show_animals_to_worker(event) {
         console.log(error);
     }
 }
+
+async function add_room_and_worker_to_data_base(event, r_id){
+    event.preventDefault();
+    const data = {
+        r_id: r_id,
+        w_id: document.querySelector(`#InputCenter${r_id}`).value
+    };
+    try {
+        const response = await fetch( url + '/add_worker_to_room',
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                method: 'post',
+
+                body: JSON.stringify(data)
+            });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+async function room_to_worker_handler(event) {
+    event.preventDefault();
+    const content = document.querySelector("#content");
+    try {
+        const response = await fetch(url + "/get_all_rooms");
+        const Rooms = await response.json();
+        console.log(Rooms);
+
+        let table = '<table class="table">';
+        table += `
+            <thead>
+                <tr>
+                  <th scope="col">Numer</th>
+                  <th scope="col">Pojemność</th>
+                  <th scope="col">Dostępni Pracownicy</th>
+                  <th scope="col">Dodaj wybranego Pracownika</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        for (const room of Rooms) {
+            const temp_response = await fetch(url + `/get_workers_for_room/${room.osrodek}/${room.P_ID}`);
+            const Workers = await temp_response.json();
+            console.log(Workers);
+            table += `
+                <tr>
+                <th scope="row">${room.numer}</th>
+                <th>${room.pojemnosc}</th>
+            `;
+            table += `<th>`;
+            table += `
+                        <select class=\"browser-default custom-select\" id="InputCenter${room.P_ID}">
+                                <option selected>Wybierz Pracownika</option>
+                        `;
+            Workers.forEach(
+                worker => {
+                    table += "\n";
+                    table += `<option value="${worker.PR_ID}">` + worker.imie + " " + worker.nazwisko + `</option>`;
+                }
+            );
+            table += "</select>";
+            table += `</th>`;
+            table += `<th><button class="btn btn-primary" onclick="add_room_and_worker_to_data_base(event, ${room.P_ID})"> Dodaj </button></th>`;
+            table += `</tr>`;
+        }
+
+        table += '</tbody></table>';
+        content.innerHTML = table;
+    } catch (error) {
+        console.log(error);
+    }
+}
