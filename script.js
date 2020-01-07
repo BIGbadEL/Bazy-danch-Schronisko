@@ -972,6 +972,54 @@ async function show_workers_handler(event) {
 
 async function vac_animal(event, S_ID, Z_ID) {
     event.preventDefault();
+    const data = {
+        s_id: S_ID
+    };
+    console.log(data);
+    try {
+        const response = await fetch( url + '/update_vac',
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                method: 'post',
+                body: JSON.stringify(data)
+            });
+    } catch (error) {
+        console.log(error);
+    }
+    try {
+        const temp_response = await fetch(url + `/get_vaccination/${Z_ID}`);
+        const vac = await temp_response.json();
+        vac.sort(comper_vac);
+        let table = ``;
+        vac.forEach(
+            v => {
+                if(new Date(v.data_warznosci) < Date.now()) {
+                    table += `<button type="button" class="btn btn-danger" onclick="vac_animal(event, ${v.S_ID}, ${Z_ID})">`;
+                } else {
+                    table += `<button type="submit" class="btn btn-primary" disabled>`;
+                }
+                table += `${v.rodzaj}`;
+                table += `</button>`;
+            }
+        );
+        document.querySelector(`#th${Z_ID}`).innerHTML = table;
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
+function comper_vac(a, b){
+    if(a.S_ID > b.S_ID){
+        return -1;
+    }
+    if(a.S_ID < b.S_ID){
+        return 1;
+    }
+    return 0;
 }
 
 async function show_animals_to_worker(event) {
@@ -1009,10 +1057,11 @@ async function show_animals_to_worker(event) {
                 <th>${animal.waga}</th>
                 <th>${animal.wiek}</th>`;
             table += `<th id="th${animal.Z_ID}">`;
+            vac.sort(comper_vac);
             vac.forEach(
                 v => {
                     if(new Date(v.data_warznosci) < Date.now()) {
-                        table += `<button type="button" class="btn btn-danger" onclick="vac_animal(event, ${vec.S_ID}, ${animal.Z_ID}">`;
+                        table += `<button type="button" class="btn btn-danger" onclick="vac_animal(event, ${v.S_ID}, ${animal.Z_ID})">`;
                     } else {
                         table += `<button type="submit" class="btn btn-primary" disabled>`;
                     }
