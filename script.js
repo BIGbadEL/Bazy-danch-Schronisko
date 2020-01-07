@@ -777,7 +777,7 @@ async function finalize_adoption(event, ad_id) {
         ad_id: ad_id
     };
     try {
-        const response = await fetch(url + '/finalize_adoption',
+        const response = await fetch( url + '/finalize_adoption',
             {
                 headers: {
                     Accept: 'application/json',
@@ -964,6 +964,68 @@ async function show_workers_handler(event) {
             });
         }
         table += `</tbody></table>`;
+        content.innerHTML = table;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function vac_animal(event, S_ID, Z_ID) {
+    event.preventDefault();
+}
+
+async function show_animals_to_worker(event) {
+    event.preventDefault();
+    const content = document.querySelector("#content");
+    try {
+        const response = await fetch(url + "/get_all_animals");
+        const Animals = await response.json();
+        console.log(Animals);
+
+        let table = '<table class="table">';
+        table += `
+            <thead>
+                <tr>
+                  <th scope="col">Imię</th>
+                  <th scope="col">Rasa</th>
+                  <th scope="col">Płeć</th>
+                  <th scope="col">Waga [kg]</th>
+                  <th scope="col">Wiek</th>
+                  <th scope="col">Szczepienia</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        for (const animal of Animals) {
+            const temp_response = await fetch(url + `/get_vaccination/${animal.Z_ID}`);
+            const vac = await temp_response.json();
+            console.log(vac);
+            table += `
+                <tr>
+                <th scope="row">${animal.imie}</th>
+                <th>${animal.nazwa}</th>
+                <th>${animal.Z_plec}</th>
+                <th>${animal.waga}</th>
+                <th>${animal.wiek}</th>`;
+            table += `<th id="th${animal.Z_ID}">`;
+            vac.forEach(
+                v => {
+                    if(new Date(v.data_warznosci) < Date.now()) {
+                        table += `<button type="button" class="btn btn-danger" onclick="vac_animal(event, ${vec.S_ID}, ${animal.Z_ID}">`;
+                    } else {
+                        table += `<button type="submit" class="btn btn-primary" disabled>`;
+                    }
+                    table += `${v.rodzaj}`;
+                    table += `</button>`;
+
+                }
+            );
+            table += `</th>`;
+            table += `</tr>`;
+        }
+
+        table += '</tbody></table>';
         content.innerHTML = table;
     } catch (error) {
         console.log(error);
