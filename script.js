@@ -1,5 +1,5 @@
-const url = `http://localhost:3002`;
-// const url = `https://shelter-api-bd-2020.herokuapp.com`;
+// const url = `http://localhost:3002`;
+const url = `https://shelter-api-bd-2020.herokuapp.com`;
 
 function onload() {
 
