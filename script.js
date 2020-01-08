@@ -789,9 +789,11 @@ async function add_adoption_to_database(event) {
                 method: 'post',
                 body: JSON.stringify(newAdoption)
             });
+        await show_adoptions_handler(event);
     } catch (error) {
         console.log(error);
     }
+
 }
 
 async function add_adoption_handler(event) {
