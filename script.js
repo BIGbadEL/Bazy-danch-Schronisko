@@ -69,6 +69,7 @@ async function registration_handler(event) {
                     "<small>Konto z podanym adresem email już istnieje</small>";
             }
         } else {
+            alert("Rejestracja przebiegła pomyślnie!");
             window.location.href = "index.html";
         }
     } catch (error) {
@@ -698,7 +699,7 @@ async function give_animal_handler(event) {
                 <input type="number" class="form-control" id="InputAge1" placeholder="wpisz wiek" required="true">
             </div>
             <div class="form-group">
-                <label for="InputWeight1">Wiek:</label>
+                <label for="InputWeight1">Waga:</label>
                 <input type="number" class="form-control" id="InputWeight1" placeholder="wpisz wagę" required="true">
             </div>
             <button type="submit" class="btn btn-primary" >Oddaj zwierzę</button>
